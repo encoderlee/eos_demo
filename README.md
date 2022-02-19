@@ -15,4 +15,4 @@ python based example requires 【pip install libeospy】 first
 most of the examples run on the eos test network 【Jungle3.0】
 [https://monitor3.jungletestnet.io](https://monitor3.jungletestnet.io)
 
-waxjs examples run on wax mainnet!
+but waxjs examples run on wax mainnet!
