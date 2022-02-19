@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<script src='../dist-web/waxjs.js'></script>
+<title>transfer demo</title>
+<h2>transfer demo</h2>
+<h2>it runs on wax mainnet!</h2>
+<p>transfer WAX token from you logined account to my account [consumer1111] by waxjs</p>
+<body>
+<button id="login" onclick=login()>WAX Login</button>
+<br><br>
+<button id="transfer" onclick=test()>transfer</button>
+<br><br>
+<hr>
+<label>login account:</label>
+<h2 id="account"></h2>
+<label>Transaction Results:</label>
+<h2 id="response"></h2>
+<p>author: <a href="https://github.com/encoderlee" target="_blank">encoderlee</a></p>
+<p>github: <a href="https://github.com/encoderlee/eos_demo" target="_blank">https://github.com/encoderlee/eos_demo</a></p>
+
+<script>
+    const wax = new waxjs.WaxJS({
+        rpcEndpoint: 'https://wax.greymass.com',
+    });
+
+    async function login() {
+        try {
+            const auto_login = await wax.isAutoLoginAvailable();
+            console.log("is auto_login: " + auto_login)
+            if (!auto_login)
+                wax.login();
+            let logined_account = await wax.login();
+            document.getElementById('account').innerText = logined_account;
+
+        } catch (e) {
+            document.getElementById('response').innerText = e.message;
+        }
+    }
+
+    async function test(){
+        try {
+            await transfer();
+        } catch (e) {
+            document.getElementById('response').innerText = e.message;
+        }
+    }
+
+    async function transfer() {
+        const result = await wax.api.transact({
+            actions: [{
+                account: 'eosio.token',
+                name: 'transfer',
+                authorization: [
+                    {
+                        actor: wax.user.account,
+                        permission: "active",
+                    },
+                ],
+                data: {
+                    from: wax.user.account,
+                    to: "consumer1111",
+                    quantity: '0.00010000 WAX',
+                    memo: 'by waxjs',
+                },
+            }]
+        }, {
+            blocksBehind: 3,
+            expireSeconds: 90,
+        });
+        document.getElementById('response').innerText = JSON.stringify(result);
+        if (result["transaction_id"])
+            window.open("https://wax.bloks.io/transaction/" + result["transaction_id"]);
+    }
+</script>
+</body>
+</html>

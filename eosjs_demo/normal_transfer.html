@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<script src='../dist-web/externals.js'></script>
+<script src='../dist-web/eosjs-api.js'></script>
+<script src='../dist-web/eosjs-jsonrpc.js'></script>
+<script src='../dist-web/eosjs-jssig.js'></script>
+<title>transfer demo</title>
+<h2>transfer demo</h2>
+<p>transfer EOS token from [consumer1111] to [consumer2222] by eosjs</p>
+<body>
+<button id="transfer" onclick=test()>transfer</button>
+<br><br>
+<hr>
+<label>Transaction Results:</label>
+<h2 id="response"></h2>
+<p>author: <a href="https://github.com/encoderlee" target="_blank">encoderlee</a></p>
+<p>github: <a href="https://github.com/encoderlee/eos_demo" target="_blank">https://github.com/encoderlee/eos_demo</a></p>
+
+<script>
+    const consumer_name = "consumer1111";
+    const consumer_private_key = "5KWxgG4rPEXzHnRBaiVRCCE6WAfnqkRpTu1uHzJoQRzixqBB1k3";
+
+    const rpc = new eosjs_jsonrpc.JsonRpc("https://jungle3.greymass.com");
+    const provider = new eosjs_jssig.JsSignatureProvider([consumer_private_key]);
+    const api = new eosjs_api.Api({ rpc:rpc, signatureProvider: provider });
+
+    async function test(){
+        try {
+            await transfer();
+        } catch (e) {
+            document.getElementById('response').innerText = e.message;
+        }
+    }
+
+    async function transfer() {
+        const result = await api.transact({
+            actions: [{
+                account: 'eosio.token',
+                name: 'transfer',
+                authorization: [
+                    {
+                        actor: consumer_name,
+                        permission: "active",
+                    },
+                ],
+                data: {
+                    from: consumer_name,
+                    to: "consumer2222",
+                    quantity: '0.0001 EOS',
+                    memo: 'by eosjs',
+                },
+            }]
+        }, {
+            blocksBehind: 3,
+            expireSeconds: 90,
+        });
+        document.getElementById('response').innerText = JSON.stringify(result);
+        if (result["transaction_id"])
+            window.open("https://jungle3.bloks.io/transaction/" + result["transaction_id"]);
+    }
+</script>
+</body>
+</html>

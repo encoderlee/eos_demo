@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<script src='../dist-web/waxjs.js'></script>
+<script src='../dist-web/externals.js'></script>
+<script src='../dist-web/eosjs-api.js'></script>
+<script src='../dist-web/eosjs-jsonrpc.js'></script>
+<script src='../dist-web/eosjs-jssig.js'></script>
+<title>transfer demo</title>
+<h2>transfer demo with ONLY_BILL_FIRST_AUTHORIZER feature</h2>
+<h2>it runs on wax mainnet!</h2>
+<p>transfer WAX token from you logined account to my account [consumer1111] by waxjs</p>
+<p>but let another account pay for CPU/NET resources of this transaction</p>
+<body>
+<label>payer_name: </label><input id="payer_name"><br><br>
+<label>payer_private_key: </label><input id="payer_private_key"><br><br>
+<button id="login" onclick=login()>WAX Login</button>
+<br><br>
+<button id="transfer" onclick=test()>transfer</button>
+<br><br>
+<hr>
+<label>login account:</label>
+<h2 id="account"></h2>
+<label>Transaction Results:</label>
+<h2 id="response"></h2>
+<p>author: <a href="https://github.com/encoderlee" target="_blank">encoderlee</a></p>
+<p>github: <a href="https://github.com/encoderlee/eos_demo" target="_blank">https://github.com/encoderlee/eos_demo</a></p>
+
+<script>
+
+    //waxjs
+    const wax = new waxjs.WaxJS({
+        rpcEndpoint: 'https://wax.greymass.com',
+    });
+
+    async function login() {
+        try {
+            const auto_login = await wax.isAutoLoginAvailable();
+            console.log("is auto_login: " + auto_login);
+            if (!auto_login)
+                wax.login();
+            let logined_account = await wax.login();
+            document.getElementById('account').innerText = logined_account;
+
+        } catch (e) {
+            document.getElementById('response').innerText = e.message;
+        }
+    }
+
+    async function test(){
+        try {
+            await transfer();
+        } catch (e) {
+            document.getElementById('response').innerText = e.message;
+        }
+    }
+
+    async function transfer() {
+        const payer_name = document.getElementById('payer_name').value;
+        const payer_private_key = document.getElementById('payer_private_key').value;
+
+        //eosjs
+        const rpc = new eosjs_jsonrpc.JsonRpc('https://wax.greymass.com');
+        const provider = new eosjs_jssig.JsSignatureProvider([payer_private_key]);
+        const api = new eosjs_api.Api({rpc: rpc, signatureProvider: provider});
+
+        let transcation_args = await api.transact({
+            actions: [{
+            account: 'eosio.token',
+            name: 'transfer',
+            authorization: [
+                {
+                    actor: payer_name,
+                    permission: "active",
+                },
+                {
+                    actor: wax.user.account,
+                    permission: "active",
+                },
+            ],
+            data: {
+                from: wax.user.account,
+                to: "consumer1111",
+                quantity: '0.00010000 WAX',
+                memo: 'by waxjs',
+            },
+        }],
+        }, {
+            blocksBehind: 3,
+            expireSeconds: 90,
+            sign: false,
+            broadcast: false,
+        });
+
+        //at first, payer sign trancation with local private key by eosjs
+        let available_keys = await api.signatureProvider.getAvailableKeys();
+        let sign_args = {
+            chainId: api.chainId,
+            requiredKeys: available_keys,
+            serializedTransaction: transcation_args.serializedTransaction,
+        };
+        transcation_args = await api.signatureProvider.sign(sign_args);
+        const payer_signatures = transcation_args.signatures;
+
+        //then, wax logined account sign trancation with remote managed private key by waxjs
+        available_keys = await wax.api.signatureProvider.getAvailableKeys();
+        sign_args = {
+            chainId: api.chainId,
+            requiredKeys: available_keys,
+            serializedTransaction: transcation_args.serializedTransaction,
+        };
+        transcation_args = await wax.api.signatureProvider.sign(sign_args);
+
+        //merge signature
+        transcation_args.signatures = payer_signatures.concat(transcation_args.signatures)
+
+        //at last, use eosjs or waxjs push signed transcation, it's up to you
+        const result = await api.pushSignedTransaction(transcation_args);
+
+        document.getElementById('response').innerText = JSON.stringify(result);
+        if (result["transaction_id"])
+            window.open("https://wax.bloks.io/transaction/" + result["transaction_id"]);
+    }
+</script>
+</body>
+</html>
