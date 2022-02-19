@@ -9,7 +9,7 @@
 <title>transfer demo</title>
 <h2>transfer demo with ONLY_BILL_FIRST_AUTHORIZER feature</h2>
 <h2>it runs on wax mainnet!</h2>
-<p>transfer WAX token from you logined account to my account [consumer1111] by waxjs</p>
+<p>transfer WAX token from you logined wax account to my account [consumer1111] by waxjs</p>
 <p>but let another account pay for CPU/NET resources of this transaction</p>
 <body>
 <label>payer_name: </label><input id="payer_name"><br><br>
@@ -102,7 +102,7 @@
         transcation_args = await api.signatureProvider.sign(sign_args);
         const payer_signatures = transcation_args.signatures;
 
-        //then, wax logined account sign trancation with remote managed private key by waxjs
+        //then, logined wax account sign trancation with remote managed private key by waxjs
         available_keys = await wax.api.signatureProvider.getAvailableKeys();
         sign_args = {
             chainId: api.chainId,
