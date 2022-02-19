@@ -1,5 +1,5 @@
 # EOS SDK DEMO
-these examples shows how to use eosjs/waxjs/eospy  to interact with eos/wax network
+these examples shows how to use 【eosjs】/【waxjs】/【eospy】 to interact with eos/wax network
 
 specifically include the use of ONLY_BILL_FIRST_AUTHORIZER feature
 
