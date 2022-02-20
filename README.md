@@ -1,7 +1,7 @@
 # EOS SDK DEMO
 these examples show how to use 【eosjs】/【waxjs】/【eospy】 to interact with eos/wax network
 
-specifically include the use of ONLY_BILL_FIRST_AUTHORIZER feature
+especially include the use of ONLY_BILL_FIRST_AUTHORIZER feature
 
 it shows how to use account A to pay for CPU/NET resources for account B's transactions
 
